@@ -1,0 +1,88 @@
+datasource db {
+  provider = "sqlite"
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String?
+  password      String
+  role          String        @default("USER")
+  createdAt     DateTime      @default(now())
+  profile       Profile?
+  resumes       Resume[]
+  applications  Application[]
+  jobs          Job[]
+}
+
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills          String
+  experience      Int      @default(0)
+  education       String?
+  location        String?
+  interests       String?
+  salaryExpected  Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Resume {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  filename     String
+  content      String
+  skills       String
+  atsScore     Int?
+  createdAt    DateTime      @default(now())
+  applications Application[]
+}
+
+model Job {
+  id              String        @id @default(cuid())
+  creatorId       String
+  creator         User          @relation(fields: [creatorId], references: [id])
+  title           String
+  description     String
+  requiredSkills  String
+  optionalSkills  String
+  salaryMin       Int?
+  salaryMax       Int?
+  experienceMin   Int           @default(0)
+  experienceMax   Int           @default(10)
+  location        String?
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  applications    Application[]
+}
+
+model Application {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id])
+  resumeId    String?
+  resume      Resume?  @relation(fields: [resumeId], references: [id])
+  matchScore  Int      @default(0)
+  status      String   @default("PENDING")
+  createdAt   DateTime @default(now())
+}
+
+model InterviewSession {
+  id            String   @id @default(cuid())
+  userId        String
+  jobId         String
+  mode          String   @default("FRIENDLY")
+  transcript    String?
+  feedback      String?
+  createdAt     DateTime @default(now())
+}
